@@ -1,0 +1,24 @@
+# Ambiente Virtual
+venv/
+env/
+
+# Arquivos de cache e de compilação
+__pycache__/
+*.pyc
+*.pyo
+*~
+
+# Arquivos de IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Dados sensíveis e de configuração local
+.env
+config.local.py
+secrets.json
+
+# Arquivos de log e de banco de dados
+*.log
+db.sqlite3
