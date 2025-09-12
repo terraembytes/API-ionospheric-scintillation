@@ -4,15 +4,6 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
 
-# url = "https://api-ismrquerytool.fct.unesp.br/"
-
-# url_get_data = url + "api/v1/data/download/ismr/file"
-
-# carrega os dados do arquivo .env
-# load_dotenv()
-
-# email = os.getenv('TOKEN_EMAIL')
-# senha = os.getenv('TOKEN_PASSWORD')
 class IsmrQueryToolAPIClient:
     def __init__(self, url_base: str, user_email: str, user_password: str):
         # Inicializa o cliente HTTPX com suporte a HTTP/2
@@ -97,3 +88,23 @@ class IsmrQueryToolAPIClient:
             
             print(f"Erro ao buscar itens: {e.response.status_code} - {e.response.text}")
             raise
+
+async def get_ISMR_API_client():
+    # carregando as credenciais das variaveis ambiente
+    # carrega os dados do arquivo .env
+    load_dotenv()
+    
+    email = os.getenv('TOKEN_EMAIL')
+    senha = os.getenv('TOKEN_PASSWORD')
+    url = os.getenv('URL_ISMR_API')
+
+    client = IsmrQueryToolAPIClient(
+        url_base=url,
+        user_email=email,
+        user_password=senha
+    )
+
+    try:
+        yield client
+    finally:
+        await client.close()
