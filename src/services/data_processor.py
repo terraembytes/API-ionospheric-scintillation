@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 class IsmrQueryToolAPIClient:
     def __init__(self, url_base: str, user_email: str, user_password: str):
         # Inicializa o cliente HTTPX com suporte a HTTP/2
-        self._client = httpx.AsyncClient(url_base = url_base, http2 = True)
+        self._client = httpx.AsyncClient(base_url = url_base, http2 = True, verify=False)
         self._client_email = user_email
         self._client_password = user_password
         self._token: Optional[str] = None
@@ -35,7 +35,7 @@ class IsmrQueryToolAPIClient:
         }
 
         try:
-            response = self._client.post("api/v1/user/token", json=login_data)
+            response = await self._client.post("api/v1/user/token", json=login_data)
             # armazena uma resposta da API, se deu tudo certo, vai fazer nada, mas caso tenha um erro 4xx ou 5xx irá salvar o erro
             response.raise_for_status()
             # armazenando os dados do token
@@ -72,7 +72,7 @@ class IsmrQueryToolAPIClient:
         }
 
         try:
-            response = await self._client.get("api/v1/data/download/ismr/file", header=header, params=params)
+            response = await self._client.get("api/v1/data/download/ismr/file", headers=header, params=params)
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as e:

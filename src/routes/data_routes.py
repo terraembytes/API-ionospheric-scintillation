@@ -16,6 +16,6 @@ async def get_data(
     processed_data = [{"Date": item['time_utc'], 'Svid': item['svid'], 'S4': item['s4'], 'Elevation': item['elev']} for item in data.get('data', [])]
     return {'data': processed_data}
 
-'''@router.get("/data/{item_id}")
+@router.get("/data/{item_id}")
 def get_single_item(item_id: int):
-    return {f"Exibindo as informações do item {item_id}"}'''
+    return {f"Exibindo as informações do item {item_id}"}
