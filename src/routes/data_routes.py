@@ -1,12 +1,21 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 import pandas as pd
+from typing import Annotated
+from services.data_processor import IsmrQueryToolAPIClient, get_ISMR_API_client
 
 router = APIRouter(tags=["data"])
 
-@router.get("/data/")
-def get_data():
-    return {"lista com os dados"}
+@router.get("/data/{start}/{end}/{station}")
+async def get_data(
+    start: str,
+    end: str, 
+    station: str,
+    api_client: Annotated[IsmrQueryToolAPIClient, Depends(get_ISMR_API_client)]
+):
+    data = await api_client.get_dados(start=start, end=end, station=station)
+    processed_data = [{"Date": item['time_utc'], 'Svid': item['svid'], 'S4': item['s4'], 'Elevation': item['elev']} for item in data.get('data', [])]
+    return {'data': processed_data}
 
-@router.get("/data/{item_id}")
+'''@router.get("/data/{item_id}")
 def get_single_item(item_id: int):
-    return {f"Exibindo as informações do item {item_id}"}
+    return {f"Exibindo as informações do item {item_id}"}'''
