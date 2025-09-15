@@ -12,6 +12,7 @@ async def get_data(
     station: str,
     api_client: Annotated[IsmrQueryToolAPIClient, Depends(get_ISMR_API_client)]
 ):
+    print('Buscando os dados...')
     data = await api_client.get_dados(start=start, end=end, station=station)
     processed_data = [{"Date": item['time_utc'], 'Svid': item['svid'], 'S4': item['s4'], 'Elevation': item['elev']} for item in data.get('data', [])]
     return {'data': processed_data}

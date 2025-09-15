@@ -6,8 +6,11 @@ from datetime import datetime, timezone, timedelta
 
 class IsmrQueryToolAPIClient:
     def __init__(self, url_base: str, user_email: str, user_password: str):
+        # configurando o time_out
+        time_config = httpx.Timeout(30.0, connect=60.0)
+
         # Inicializa o cliente HTTPX com suporte a HTTP/2
-        self._client = httpx.AsyncClient(base_url = url_base, http2 = True, verify=False)
+        self._client = httpx.AsyncClient(base_url = url_base, http2 = True, verify=False, timeout=time_config)
         self._client_email = user_email
         self._client_password = user_password
         self._token: Optional[str] = None
@@ -74,6 +77,7 @@ class IsmrQueryToolAPIClient:
         try:
             response = await self._client.get("api/v1/data/download/ismr/file", headers=header, params=params)
             response.raise_for_status()
+            print('Retornando os dados...')
             return response.json()
         except httpx.HTTPStatusError as e:
             # verificando caso o token tenha dado erro
@@ -84,6 +88,7 @@ class IsmrQueryToolAPIClient:
                 header = {"Authorization": f'Bearer {self._token}', "type": "json", "fields": "time_utc,svid,s4,elev"}
                 response = await self._client.get("api/v1/data/download/ismr/file", header=header, params=params)
                 response.raise_for_status()
+                print('Retornando os dados...')
                 return response.json()
             
             print(f"Erro ao buscar itens: {e.response.status_code} - {e.response.text}")
