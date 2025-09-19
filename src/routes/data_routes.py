@@ -23,14 +23,6 @@ dict_constellations = {
     'BeiDou': range(141, 177)
 }
 
-dict_operators = {
-    '>=': '>=',
-    '<=': '<=',
-    '==': '==',
-    '>': '>',
-    '<': '<'
-}
-
 @router.get("/data/")
 async def get_data(
     start: str,
@@ -53,16 +45,19 @@ async def get_data(
         return {'data': processed_data}
 
 @router.get("/data/filters/geral/")
-async def filter_geral_datas(elev: int = 0, elevType: str = '>=', constellation: str = 'ALL'):
+async def filter_geral_datas(elev: int = 0, elevType: int = 1, constellation: str = 'ALL'):
     global dados
     if dados != None:
+        print("Filtrando por constelação...")
         if constellation != 'ALL':
-            data_filtered = constellation_filter(constellation)
+            data_filtered1 = constellation_filter(constellation)
         else:
-            data_filtered = dados
-        data_filtered = elevation_filter(elev, elevType, data_filtered)
+            data_filtered1 = dados
+        print("Filtrando a elevação...")
+        data_filtered = elevation_filter(elev, elevType, data_filtered1)
     else:
         data_filtered = dados
+        print("dados vazios...")
     return {'data': data_filtered}
 
 def constellation_filter(constellation: str) -> list[dict]:
@@ -71,18 +66,25 @@ def constellation_filter(constellation: str) -> list[dict]:
     data_copy = [linha for linha in dados if linha['Svid'] in values]
     return data_copy
 
-def elevation_filter(elev: int, elevType: int, data_copy: list) -> list[dict]:
+def elevation_filter(elev: int, elevType: int, data_copy: list[dict]) -> list[dict]:
+    data_pre_processed = [{**linha, 'Elevation': linha.get('Elevation') or 0} for linha in data_copy]
     match elevType:
         case 1:
-            data_processed = [linha for linha in data_copy if linha['Elevation'] >= elev]
+            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) >= elev]
+            print(f"Filtrando a elevação >= {elev}")
         case 2:
-            data_processed = [linha for linha in data_copy if linha['Elevation'] <= elev]
+            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) <= elev]
+            print(f"Filtrando a elevação <= {elev}")
         case 3:
-            data_processed = [linha for linha in data_copy if linha['Elevation'] == elev]
+            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) == elev]
+            print(f"Filtrando a elevação == {elev}")
         case 4:
-            data_processed = [linha for linha in data_copy if linha['Elevation'] > elev]
+            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) > elev]
+            print(f"Filtrando a elevação > {elev}")
         case 5:
-            data_processed = [linha for linha in data_copy if linha['Elevation'] >= elev]
+            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) >= elev]
+            print(f"Filtrando a elevação < {elev}")
         case _:
             data_processed = []
+            print("tipo de filtro invalido")
     return data_processed
