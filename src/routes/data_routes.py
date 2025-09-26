@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-import pandas as pd
-from typing import Annotated, List
+from typing import Annotated
 from services.data_processor import IsmrQueryToolAPIClient, get_ISMR_API_client
-from utils.helpers import verificar_parametros_iguais
+from utils.helpers import verificar_parametros_iguais, group_s4, constellation_filter, elevation_filter, filter_constella_elev
 
 router = APIRouter(tags=["data"])
 
@@ -13,16 +11,9 @@ params = {
     'station': None
 }
 
-dados: any = None
+dados = None
 
-dict_constellations = {
-    'ALL': range(1, 177),
-    'GPS': range(1, 37),
-    'GLONASS': range(38, 68),
-    'GALILEO': range(71, 102),
-    'BeiDou': range(141, 177)
-}
-
+# rota padrão para os dados gerais
 @router.get("/data/")
 async def get_data(
     start: str,
@@ -44,47 +35,24 @@ async def get_data(
         dados = processed_data
         return {'data': processed_data}
 
+# rota de filtragem dos dados gerais
 @router.get("/data/filters/geral/")
 async def filter_geral_datas(elev: int = 0, elevType: int = 1, constellation: str = 'ALL'):
-    global dados
     if dados != None:
-        print("Filtrando por constelação...")
-        if constellation != 'ALL':
-            data_filtered1 = constellation_filter(constellation)
-        else:
-            data_filtered1 = dados
-        print("Filtrando a elevação...")
-        data_filtered = elevation_filter(elev, elevType, data_filtered1)
+        data_filtered = filter_constella_elev(dados, constellation, elev, elevType)
     else:
         data_filtered = dados
         print("dados vazios...")
     return {'data': data_filtered}
 
-def constellation_filter(constellation: str) -> list[dict]:
-    global dict_constellations, dados
-    values = dict_constellations.get(constellation, [])
-    data_copy = [linha for linha in dados if linha['Svid'] in values]
-    return data_copy
-
-def elevation_filter(elev: int, elevType: int, data_copy: list[dict]) -> list[dict]:
-    data_pre_processed = [{**linha, 'Elevation': linha.get('Elevation') or 0} for linha in data_copy]
-    match elevType:
-        case 1:
-            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) >= elev]
-            print(f"Filtrando a elevação >= {elev}")
-        case 2:
-            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) <= elev]
-            print(f"Filtrando a elevação <= {elev}")
-        case 3:
-            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) == elev]
-            print(f"Filtrando a elevação == {elev}")
-        case 4:
-            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) > elev]
-            print(f"Filtrando a elevação > {elev}")
-        case 5:
-            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) >= elev]
-            print(f"Filtrando a elevação < {elev}")
-        case _:
-            data_processed = []
-            print("tipo de filtro invalido")
-    return data_processed
+# rota para o grafico de contagem do indice S4
+@router.get("/data/filters/contGraphs/")
+async def filter_cont_s4(elev: int = 0, elevType: int = 1, constellation: str = 'ALL', time: str = '1 minuto'):
+    if dados != None:
+        data_filtered2 = filter_constella_elev(dados, constellation, elev, elevType)
+        print("Agrupando os valores de S4...")
+        data_filtered3 = group_s4(data_filtered2, constellation, time)
+    else:
+        data_filtered3 = dados
+        print("dados vazios...")
+    return {'data': data_filtered3}
