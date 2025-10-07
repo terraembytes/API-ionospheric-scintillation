@@ -1,5 +1,7 @@
 import itertools
 import pandas as pd
+import datetime
+import numpy as np
 
 dict_constellations = {
     'ALL': range(1, 177),
@@ -56,14 +58,17 @@ def group_time_s4(df, ranges, time) -> pd.DataFrame:
     }
     # obtendo o DataFrame de cada constelação
     df_cut = df.loc[df['Svid'].isin(ranges), :].copy()
+    df_cut['Date'] = pd.to_datetime(df_cut['Date'])
+    df_cut['S4'] = df_cut['S4'].replace('NaN', np.nan)
+    df_cut['S4'] = pd.to_numeric(df_cut['S4'])
     freq = interval_map[time]
     # na nova coluna 'time_group', eu adiciono o tempo arredondando para a proxima freq
     # dessa forma, posteriormente, é possivel calcular os valores agrupando pelo 'time_group'
     df_cut['time_group'] = df_cut['Date'].dt.ceil(freq)
     # cria um DataFrameGroupby com o calculo da somatoria dos valores de S4
-    grouped = df_cut.groupby('time_group')['s4'].agg([
+    grouped = df_cut.groupby('time_group')['S4'].agg([
         ('s4_06', lambda x: (x >= 0.6).sum()),
-        ('s4_03', lambda x: x.between(0.3, 0.6, inclusive='left').sum())
+        ('s4_03', lambda x: (x.between(0.3, 0.6, inclusive='left')).sum())
     ]).reset_index()
     # transforma o grouped em um DataFrame padrao com tres colunas
     df_group_cut = pd.DataFrame({

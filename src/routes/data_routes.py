@@ -47,12 +47,21 @@ async def filter_geral_datas(elev: int = 0, elevType: int = 1, constellation: st
 
 # rota para o grafico de contagem do indice S4
 @router.get("/data/filters/contGraphs/")
-async def filter_cont_s4(elev: int = 0, elevType: int = 1, constellation: str = 'ALL', time: str = '1 minuto'):
+async def filter_cont_s4(elev: int, elevType: int, constellation: str, time: str, start: str, end: str, station: str, api_client: Annotated[IsmrQueryToolAPIClient, Depends(get_ISMR_API_client)]):
+    global dados
     if dados != None:
         data_filtered2 = filter_constella_elev(dados, constellation, elev, elevType)
         print("Agrupando os valores de S4...")
         data_filtered3 = group_s4(data_filtered2, constellation, time)
     else:
-        data_filtered3 = dados
-        print("dados vazios...")
+        params['start'] = start
+        params['end'] = end
+        params['station'] = station
+        print('Buscando os dados...')
+        data = await api_client.get_dados(start=start, end=end, station=station)
+        processed_data = [{"Date": item['time_utc'], 'Svid': item['svid'], 'S4': item['s4'], 'Elevation': item['elev']} for item in data.get('data', [])]
+        dados = processed_data
+        data_filtered2 = filter_constella_elev(dados, constellation, elev, elevType)
+        print("Agrupando os valores de S4...")
+        data_filtered3 = group_s4(data_filtered2, constellation, time)
     return {'data': data_filtered3}
