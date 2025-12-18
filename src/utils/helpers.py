@@ -11,6 +11,17 @@ dict_constellations = {
     'BeiDou': range(141, 177)
 }
 
+interval_map = {
+        '1 minuto': '1min',
+        '5 minutos': '5min',
+        '10 minutos': '10min',
+        '30 minutos': '30min',
+        '1 hora': '60min',
+        '2 horas': '120min',
+        '3 horas': '180min',
+        '4 horas': '240min',
+    }
+
 def verificar_parametros_iguais(param: dict, start, end, station) -> bool:
     if param.get('start') == start and param.get('end') == end and param.get('station') == station:
         res = True
@@ -22,7 +33,7 @@ def verificar_parametros_iguais(param: dict, start, end, station) -> bool:
 def filter_constella_elev(dados, constellation, elev, elevType) -> list[dict]:
     print("Filtrando por constelação...")
     if constellation != 'ALL':
-        data_filtered1 = constellation_filter(constellation, dados, dict_constellations)
+        data_filtered1 = constellation_filter(constellation, dados)
     else:
         data_filtered1 = dados
     print("Filtrando a elevação...")
@@ -40,22 +51,38 @@ def group_s4(data_copy: list[dict], constellation: str, time: str) -> list[dict]
             list_df.append(group_time_s4(df, ranges, time))
         df_complete = pd.concat(list_df, ignore_index=True)
     else:
-        df_complete = group_time_s4(df, ranges, time)
+        df_complete = constellation_time_s4(df, time)
     # convertendo o DataFrame em list[dict]
     return df_complete.to_dict(orient='records')
 
+# operação semelhante a função group_time_s4, mas trabalha com apenas uma constelação
+def constellation_time_s4(df, time) -> pd.DataFrame:
+    freq = interval_map[time] # pegando o tempo escolhido pelo usuario
+
+    df_cut = df.copy()
+    # tratatando rapidamente os dados
+    df_cut['Date'] = pd.to_datetime(df_cut['Date'])
+    df_cut['S4'] = df_cut['S4'].replace('NaN', np.nan)
+    df_cut['S4'] = pd.to_numeric(df_cut['S4'])
+
+    df_cut['time_group'] = df_cut['Date'].dt.ceil(freq)
+
+    grouped = df_cut.groupby('time_group')['S4'].agg([
+        ('s4_06', lambda x: (x >= 0.6).sum()),
+        ('s4_03', lambda x: (x.between(0.3, 0.6, inclusive='left')).sum())
+    ]).reset_index()
+
+    df_group_cut = pd.DataFrame({
+        'Date': grouped['time_group'],
+        'S4_06': grouped['s4_06'],
+        'S4_03': grouped['s4_03']
+    })
+    # Otimiza o df para que uma unica coluna contenha os dois valores de s4
+    df_cut_long = pd.melt(df_group_cut, id_vars='Date', var_name='S4', value_name='Quantidade')
+    return df_cut_long
+
 # realiza a operação de agrupamento em si
 def group_time_s4(df, ranges, time) -> pd.DataFrame:
-    interval_map = {
-        '1 minuto': '1min',
-        '5 minutos': '5min',
-        '10 minutos': '10min',
-        '30 minutos': '30min',
-        '1 hora': '60min',
-        '2 horas': '120min',
-        '3 horas': '180min',
-        '4 horas': '240min',
-    }
     # obtendo o DataFrame de cada constelação
     df_cut = df.loc[df['Svid'].isin(ranges), :].copy()
     df_cut['Date'] = pd.to_datetime(df_cut['Date'])

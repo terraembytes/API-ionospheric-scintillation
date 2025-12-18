@@ -65,7 +65,7 @@ class IsmrQueryToolAPIClient:
         header = {
             "Authorization": f'Bearer {self._token}',
             "type": "json",
-            "fields": "time_utc,svid,s4,elev"
+            "fields": "time_utc,svid,s4,elev,azim,avg_cn0_l1"
         }
 
         params = {
@@ -85,7 +85,7 @@ class IsmrQueryToolAPIClient:
                 print('Token invalido (fallback). Tentando renovar...')
                 await self._get_token()
                 # repete a requisição
-                header = {"Authorization": f'Bearer {self._token}', "type": "json", "fields": "time_utc,svid,s4,elev"}
+                header = {"Authorization": f'Bearer {self._token}', "type": "json", "fields": "time_utc,svid,s4,elev,azim,avg_cn0_l1"}
                 response = await self._client.get("api/v1/data/download/ismr/file", header=header, params=params)
                 response.raise_for_status()
                 print('Retornando os dados...')

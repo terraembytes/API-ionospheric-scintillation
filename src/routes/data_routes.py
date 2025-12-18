@@ -33,9 +33,9 @@ async def get_data(
         print('Buscando os dados...')
         try:
             data = await api_client.get_dados(start=start, end=end, station=station)
-            processed_data = [{"Date": item['time_utc'], 'Svid': item['svid'], 'S4': item['s4'], 'Elevation': item['elev']} for item in data.get('data', [])]
+            processed_data = [{"Date": item['time_utc'], 'Svid': item['svid'], 'S4': item['s4'], 'Elevation': item['elev'], 'Azimute': item['azim'], 'Intensity': item['avg_cn0_l1']} for item in data.get('data', [])]
             dados = processed_data
-            return {'data': processed_data}
+            return {'data': dados}
         except ReadTimeout: # demorou muito para responder
             raise HTTPException(
                 status_code=504, 
