@@ -55,13 +55,38 @@ async def get_data(
 
 # rota de filtragem dos dados gerais
 @router.get("/data/filters/geral/")
-async def filter_geral_datas(elev: int = 0, elevType: int = 1, constellation: str = 'ALL'):
+async def filter_geral_datas(elev: int, elevType: int, constellation: str, start: str, end: str, station: str, api_client: Annotated[IsmrQueryToolAPIClient, Depends(get_ISMR_API_client)]):
+    global dados
     if dados != None:
         data_filtered = filter_constella_elev(dados, constellation, elev, elevType)
+        return {'data': data_filtered}
     else:
         data_filtered = dados
-        print("dados vazios...")
-    return {'data': data_filtered}
+        params['start'] = start
+        params['end'] = end
+        params['station'] = station
+        print('Buscando os dados...')
+        try:
+            data = await api_client.get_dados(start=start, end=end, station=station)
+            processed_data = [{"Date": item['time_utc'], 'Svid': item['svid'], 'S4': item['s4'], 'Elevation': item['elev', 'Azimute': item['azim'], 'Intensity': item['avg_cn0_l1']]} for item in data.get('data', [])]
+            dados = processed_data
+            data_filtered2 = filter_constella_elev(dados, constellation, elev, elevType)
+            return {'data': data_filtered2}
+        except ReadTimeout:
+            raise HTTPException(
+                status_code=504, 
+                detail="A API externa (ISMR) demorou muito para responder."
+            )
+        except ConnectionError: # não conseguiu se conectar
+            raise HTTPException(
+                status_code=503,
+                detail="Não foi possível conectar com a API externa (ISMR)"
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erro ao processar os dados: {e}"
+            )
 
 # rota para o grafico de contagem do indice S4
 @router.get("/data/filters/contGraphs/")
