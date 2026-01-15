@@ -138,10 +138,11 @@ def elevation_filter(elev: int, elevType: int, data_copy: list[dict]) -> list[di
     return data_processed
 
 # função para cortar um pedaço baseado num horário
-def cut_hour_range(hour_range: int | None, hour_selected: datetime | None, data_copy) -> pd.DataFrame:
+def cut_hour_range(hour_range: int | None, hour_selected: str | None, data_copy) -> pd.DataFrame:
     if hour_range is None:
         return data_copy
     
+    hour_selected = datetime.strptime(hour_selected, '%Y-%m-%d %H:%M:%S')
     future_date = hour_selected + timedelta(hours=hour_range)
     data_copy['Date'] = pd.to_datetime(data_copy['Date'])
     data_cut = data_copy[(data_copy['Date'] >= hour_selected) and (data_copy['Date'] <= future_date), :].copy()
