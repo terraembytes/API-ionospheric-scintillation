@@ -108,9 +108,9 @@ def group_time_s4(df, ranges, time) -> pd.DataFrame:
     return df_cut_long
 
 # filtro das constelações de satélite
-def constellation_filter(constellation: str, dados) -> list[dict]:
+def constellation_filter(constellation: str, dados: list[dict]) -> list[dict]:
     values = dict_constellations.get(constellation, [])
-    data_copy = [linha for linha in dados if linha['Svid'] in values]
+    data_copy = [linha for linha in dados if linha.get('Svid') in values]
     return data_copy
 
 # filtro da elevação
@@ -138,12 +138,15 @@ def elevation_filter(elev: int, elevType: int, data_copy: list[dict]) -> list[di
     return data_processed
 
 # função para cortar um pedaço baseado num horário
-def cut_hour_range(hour_range: int | None, hour_selected: str | None, data_copy) -> pd.DataFrame:
-    if hour_range is None:
+def cut_hour_range(hour_range: int | None, hour_selected: str | None, data_copy) -> list[dict]:
+    if hour_range is None or hour_selected is None:
         return data_copy
     
     hour_selected = datetime.strptime(hour_selected, '%Y-%m-%d %H:%M:%S')
     future_date = hour_selected + timedelta(hours=hour_range)
-    data_copy['Date'] = pd.to_datetime(data_copy['Date'])
-    data_cut = data_copy[(data_copy['Date'] >= hour_selected) and (data_copy['Date'] <= future_date), :].copy()
-    return data_cut
+    new_df = pd.DataFrame(data_copy)
+    new_df['Date'] = pd.to_datetime(new_df['Date'])
+    mask = (new_df['Date'] >= hour_selected) & (new_df['Date'] <= future_date)
+    data_cut = new_df.loc[mask].copy()
+    data_list = data_cut.to_dict(orient='records')
+    return data_list

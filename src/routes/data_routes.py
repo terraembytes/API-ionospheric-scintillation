@@ -4,6 +4,7 @@ from services.data_processor import IsmrQueryToolAPIClient, get_ISMR_API_client
 from utils.helpers import verificar_parametros_iguais, group_s4, filter_constella_elev, cut_hour_range
 from httpx import ReadTimeout
 from services.temporary_memory import DataService, get_data_service
+import traceback
 
 router = APIRouter(tags=["data"])
 
@@ -48,6 +49,7 @@ async def get_datas(
             detail="Não foi possível conectar com a API externa (ISMR)"
         )
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Erro ao processar os dados: {e}"
