@@ -2,6 +2,7 @@ import itertools
 import pandas as pd
 from datetime import datetime, timedelta
 import numpy as np
+import math
 
 dict_constellations = {
     'ALL': range(1, 177),
@@ -147,3 +148,7 @@ def cut_hour_range(hour_range: int | None, hour_selected: str | None, data_copy)
 # função para filtrar pelo indice S4
 def get_s4_higher_equals(s4_value, data: list[dict]) -> list[dict]:
     return filter(lambda x: x.S4 >= s4_value, data)
+
+# funcao para converter o azimute para radianos
+def transform_to_radian(data: list[dict]) -> list[dict]:
+    return map(lambda x: np.radians(x.Azimute), data)
