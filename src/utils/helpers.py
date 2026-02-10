@@ -22,13 +22,6 @@ interval_map = {
         '4 horas': '240min',
     }
 
-def verificar_parametros_iguais(param: dict, start, end, station) -> bool:
-    if param.get('start') == start and param.get('end') == end and param.get('station') == station:
-        res = True
-    else:
-        res = False
-    return res
-
 # filtro geral da constelação e elevação
 def filter_constella_elev(dados, constellation, elev, elevType) -> list[dict]:
     print("Filtrando por constelação...")
@@ -150,3 +143,7 @@ def cut_hour_range(hour_range: int | None, hour_selected: str | None, data_copy)
     data_cut = new_df.loc[mask].copy()
     data_list = data_cut.to_dict(orient='records')
     return data_list
+
+# função para filtrar pelo indice S4
+def get_s4_higher_equals(s4_value, data: list[dict]) -> list[dict]:
+    return filter(lambda x: x.S4 >= s4_value, data)
