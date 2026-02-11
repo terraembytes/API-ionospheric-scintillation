@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import numpy as np
 import math
+from sklearn.cluster import DBSCAN
 
 dict_constellations = {
     'ALL': range(1, 177),
@@ -168,3 +169,9 @@ def convert_to_xyScale(data: list[dict]):
     points = np.column_stack((x, y))
 
     return points
+
+# funcao para criar um cluster
+def create_cluster(points, epson, min_samples):
+    dbscan = DBSCAN(eps=epson, min_samples=min_samples)
+    clusters = dbscan.fit_predict(points)
+    return clusters
