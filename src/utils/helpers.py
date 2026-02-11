@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import math
 from sklearn.cluster import DBSCAN
+from scipy.spatial import ConvexHull
 
 dict_constellations = {
     'ALL': range(1, 177),
@@ -175,3 +176,15 @@ def create_cluster(points, epson, min_samples):
     dbscan = DBSCAN(eps=epson, min_samples=min_samples)
     clusters = dbscan.fit_predict(points)
     return clusters
+
+# funcao para criar os poligonos
+def get_polygons(clusters, points):
+    unique_labels = np.unique(clusters)
+
+    list_simplices = list
+    for label in unique_labels:
+        filter = (clusters == label)
+        hull = ConvexHull(points[filter])
+        list_simplices.append(hull.simplices)
+
+    return list_simplices
