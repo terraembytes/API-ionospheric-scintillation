@@ -152,3 +152,19 @@ def get_s4_higher_equals(s4_value, data: list[dict]) -> list[dict]:
 # funcao para converter o azimute para radianos
 def transform_to_radian(data: list[dict]) -> list[dict]:
     return map(lambda x: np.radians(x.Azimute), data)
+
+# funcao para converter a elevacao e azimute para x e y
+def convert_to_xyScale(data: list[dict]):
+    x = [
+        (90 - item['Elevation']) * math.sin(item['Azimute'])
+        for item in data
+    ]
+
+    y = [
+        (90 - item['Elevation']) * math.cos(item['Azimute'])
+        for item in data
+    ]
+
+    points = np.column_stack((x, y))
+
+    return points
