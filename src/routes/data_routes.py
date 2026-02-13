@@ -113,7 +113,7 @@ async def get_skyplot_polygon(
         clusters = create_cluster(xy_scale, 9, 5)
         list_polygons = get_polygons(clusters, xy_scale)
 
-        return {'data': {'data': data_constellation, 'polygons': list_polygons}}
+        return {'data': {'data': data_constellation, 'polygons': list_polygons, 'points': xy_scale}}
 
     except ReadTimeout:
         raise HTTPException(
