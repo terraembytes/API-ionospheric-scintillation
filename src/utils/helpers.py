@@ -185,7 +185,7 @@ def create_cluster(points, epson, min_samples):
 def get_polygons(clusters, points):
     unique_labels = np.unique(clusters)
 
-    list_simplices = list
+    list_simplices = []
     for label in unique_labels:
         filter = (clusters == label)
         hull = ConvexHull(points[filter])
