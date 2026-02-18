@@ -160,19 +160,20 @@ def transform_to_radian(data: list[dict]) -> list[dict]:
 
 # funcao para converter a elevacao e azimute para x e y
 def convert_to_xyScale(data: list[dict]):
-    x = [
-        (90 - item['Elevation']) * math.sin(item['Azimute'])
+    xy_pairs = [
+        (
+            (90 - item['Elevation']) * math.sin(item['Azimute']), # Valor X
+            (90 - item['Elevation']) * math.cos(item['Azimute'])  # Valor Y
+        )
         for item in data
     ]
+    
+    # Se a lista vier vazia, previne erro no numpy
+    if not xy_pairs:
+        return np.empty((0, 2))
 
-    y = [
-        (90 - item['Elevation']) * math.cos(item['Azimute'])
-        for item in data
-    ]
-
-    points = np.column_stack((x, y))
-
-    return points
+    # O numpy converte a lista de tuplas direto para o formato correto
+    return np.array(xy_pairs)
 
 # funcao para criar um cluster
 def create_cluster(points, epson, min_samples):
