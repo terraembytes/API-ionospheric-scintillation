@@ -145,6 +145,9 @@ def cut_hour_range(hour_range: int | None, hour_selected: str | None, data_copy)
     data_list = data_cut.to_dict(orient='records')
     return data_list
 
+def convert_str_to_float(data: list[dict], indice: str):
+    return map(lambda x: float(x[indice]), data)
+
 # função para filtrar pelo indice S4
 def get_s4_higher_equals(s4_value, data: list[dict]) -> list[dict]:
     return filter(lambda x: x.S4 >= s4_value, data)
