@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Annotated
 from services.data_processor import IsmrQueryToolAPIClient, get_ISMR_API_client
-from utils.helpers import group_s4, filter_constella_elev, cut_hour_range, constellation_filter, get_s4_higher_equals, transform_to_radian, convert_to_xyScale, create_cluster, get_polygons
+from utils.helpers import group_s4, filter_constella_elev, cut_hour_range, constellation_filter, get_s4_higher_equals, transform_to_radian, convert_to_xyScale, create_cluster, get_polygons, convert_str_to_float
 from httpx import ReadTimeout
 from services.temporary_memory import DataService, get_data_service
 import traceback
@@ -91,7 +91,7 @@ async def filter_cont_s4(
             detail=f"Erro ao processar os dados: {e}"
         )
     
-@router.get("v1/data/skyplot-polygon/")
+@router.get("/v1/data/skyplot-polygon/")
 async def get_skyplot_polygon(
     constellation: str, 
     start: str, 
@@ -104,16 +104,21 @@ async def get_skyplot_polygon(
 ):
     try:
         dados_brutos = await service.get_data(api_client, start, end, station)
-
         data_cut = cut_hour_range(hour_range, date_selected, dados_brutos)
         data_constellation = constellation_filter(constellation, data_cut)
-        data_s4 = get_s4_higher_equals(0.6, data_constellation)
+        data_values = convert_str_to_float(data_constellation, 'S4')
+        data_values2 = convert_str_to_float(data_values, 'Elevation')
+        data_values3 = convert_str_to_float(data_values2, 'Azimute')
+        data_s4 = get_s4_higher_equals(0.6, data_values3)
         data_values_converted = transform_to_radian(data_s4)
         xy_scale = convert_to_xyScale(data_values_converted)
         clusters = create_cluster(xy_scale, 9, 5)
         list_polygons = get_polygons(clusters, xy_scale)
+        list_polygons_clean = [poly.tolist() for poly in list_polygons]
 
-        return {'data': {'data': data_constellation, 'polygonsData': {'polygons': list_polygons, 'points': xy_scale.tolist()}}}
+        list_xy = xy_scale.tolist()
+
+        return {'data': {'data': data_constellation, 'polygonsData': {'polygons': list_polygons_clean, 'points': xy_scale.tolist()}}}
 
     except ReadTimeout:
         raise HTTPException(
@@ -126,6 +131,8 @@ async def get_skyplot_polygon(
             detail="Não foi possível conectar com a API externa (ISMR)"
         )
     except Exception as e:
+        traceback.print_exc()
+        print(f"Erro detalhado: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Erro ao processar os dados: {e}"
