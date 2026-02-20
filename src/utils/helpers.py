@@ -146,7 +146,7 @@ def cut_hour_range(hour_range: int | None, hour_selected: str | None, data_copy)
     return data_list
 
 def convert_str_to_float(data: list[dict], indice: str):
-    return map(lambda x: float(x[indice]), data)
+    return map(lambda x: {**x, indice: float(x[indice])}, data)
 
 # função para filtrar pelo indice S4
 def get_s4_higher_equals(s4_value, data: list[dict]) -> list[dict]:
@@ -154,4 +154,4 @@ def get_s4_higher_equals(s4_value, data: list[dict]) -> list[dict]:
 
 # funcao para converter o azimute para radianos
 def transform_to_radian(data: list[dict]) -> list[dict]:
-    return map(lambda x: np.radians(x['Azimute']), data)
+    return map(lambda x: {**x, 'Azimute': np.radians(x['Azimute'])}, data)
