@@ -196,3 +196,7 @@ def get_polygons(clusters, points):
 def convert_to_elevation(lista_xy: list[list]):
     list_elevation = [90 - (math.hypot(item[0], item[1])) for item in lista_xy]
     return list_elevation
+
+def convert_to_azimute(lista_xy: list[list]):
+    list_azimute = [math.atan2(item[1], item[0]) for item in lista_xy]
+    return list_azimute
