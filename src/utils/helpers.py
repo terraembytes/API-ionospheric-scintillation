@@ -155,3 +155,16 @@ def get_s4_higher_equals(s4_value, data: list[dict]) -> list[dict]:
 # funcao para converter o azimute para radianos
 def transform_to_radian(data: list[dict]) -> list[dict]:
     return map(lambda x: {**x, 'Azimute': np.radians(x['Azimute'])}, data)
+
+# funcao para definir o tamanho de cada plot baseado no S4
+def add_size_s4(data: list[list]):
+    for item in data:
+        if item['S4'] < 0.6:
+            item['SizePlot'] = '10'
+        elif item['S4'] >= 0.6 and item['S4'] < 1:
+            item['SizePlot'] = '20'
+        elif item['S4'] >= 1 and item['S4'] < 1.2:
+            item['SizePlot'] = '30'
+        else:
+            item['SizePlot'] = '40'
+    return data
