@@ -146,10 +146,10 @@ def cut_hour_range(hour_range: int | None, hour_selected: str | None, data_copy)
     return data_list
 
 def convert_str_to_float(data: list[dict], indice: str):
-    return map(lambda x: {**x, indice: float(x[indice])}, data)
+    return list(map(lambda x: {**x, indice: float(x[indice])}, data))
 
 def convert_number_to_str(data: list[dict], indice):
-    return map(lambda x: {**x, indice: str(x[indice])}, data)
+    return list(map(lambda x: {**x, indice: str(x[indice])}, data))
 
 # função para filtrar pelo indice S4
 def get_s4_higher_equals(s4_value, data: list[dict]) -> list[dict]:
@@ -157,17 +157,20 @@ def get_s4_higher_equals(s4_value, data: list[dict]) -> list[dict]:
 
 # funcao para converter o azimute para radianos
 def transform_to_radian(data: list[dict]) -> list[dict]:
-    return map(lambda x: {**x, 'Azimute': np.radians(x['Azimute'])}, data)
+    return list(map(lambda x: {**x, 'Azimute': np.radians(x['Azimute'])}, data))
 
 # funcao para definir o tamanho de cada plot baseado no S4
-def add_size_s4(data: list[list]):
+def add_size_s4(data: list[dict]):
+    list_size = []
     for item in data:
         if item['S4'] < 0.6:
-            item['SizePlot'] = '10'
+            list_size.append('10')
         elif item['S4'] >= 0.6 and item['S4'] < 1:
-            item['SizePlot'] = '20'
+            list_size.append('20')
         elif item['S4'] >= 1 and item['S4'] < 1.2:
-            item['SizePlot'] = '30'
+            list_size.append('30')
         else:
-            item['SizePlot'] = '40'
-    return data
+            list_size.append('40')
+    df = pd.DataFrame(data)
+    df['sizePlot'] = list_size
+    return df.to_dict(orient='records')
