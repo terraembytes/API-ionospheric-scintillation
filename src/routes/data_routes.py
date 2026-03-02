@@ -72,9 +72,9 @@ async def get_skiplot_s4_data(
 
         data_cut = cut_hour_range(hour_range, date_selected, dados_brutos)
         data_filtered2 = filter_constella_elev(data_cut, constellation, elev, elevType)
-        data_number_converted = convert_str_to_float(data_filtered2, 'S4')
-        processed_data = remover_s4_nan(data_number_converted)
-        data_with_size = add_size_s4(processed_data)
+        processed_data = remover_s4_nan(data_filtered2)
+        data_number_converted = convert_str_to_float(processed_data, 'S4')
+        data_with_size = add_size_s4(data_number_converted)
         data_reconverted = convert_number_to_str(data_with_size, 'S4')
         return {'data': data_reconverted}
     except ReadTimeout:
