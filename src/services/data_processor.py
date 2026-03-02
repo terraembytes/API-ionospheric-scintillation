@@ -24,13 +24,8 @@ class IsmrQueryToolAPIClient:
 
     async def close(self):
         await self._client.aclose()
-
-    def _is_token_expired(self) -> bool:
-        safety_buffer = timedelta(minutes=30)
-        # verifica se o token expirou ou está prestes a expirar
-        return not self._token or datetime.now(timezone.utc) >= self._token_expires_at - safety_buffer
     
-    async def _get_token(self) -> str:
+    async def _get_token(self) -> tuple[str, datetime]:
         # request body da API ISMR
         login_data = {
             "email": self._client_email,
@@ -44,26 +39,21 @@ class IsmrQueryToolAPIClient:
             # armazenando os dados do token
             token_data = response.json()
 
-            self._token = token_data['access_token']
+            token = token_data['access_token']
             expires_in_response = token_data.get("expires_at")
             # convertendo a string no formato datetime do python
             expires_in = datetime.fromisoformat(expires_in_response)
-            self._token_expires_at = expires_in
 
             print("Novo token adquirido")
-            return self._token
+            return token, expires_in
         except httpx.HTTPStatusError as e:
             print(f'Erro ao obter o token: {e.response.status_code} - {e.response.text}')
             raise # sinaliza que houve uma execessão
     
-    async def get_dados(self, start: str, end: str, station: str) -> dict:
-        #verificando a validade do token
-        if self._is_token_expired():
-            print("Token expirado ou prestes a expirar! Renovando...")
-            await self._get_token()
+    async def get_dados(self, start: str, end: str, station: str, token: str) -> dict:
 
         header = {
-            "Authorization": f'Bearer {self._token}',
+            "Authorization": f'Bearer {token}',
             "type": "json",
             "fields": "time_utc,svid,s4,elev,azim,avg_cn0_l1"
         }
@@ -73,26 +63,10 @@ class IsmrQueryToolAPIClient:
             "end": end,
             "station": station
         }
-
-        try:
-            response = await self._client.get("api/v1/data/download/ismr/file", headers=header, params=params)
-            response.raise_for_status()
-            print('Retornando os dados...')
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            # verificando caso o token tenha dado erro
-            if e.response.status_code == 401:
-                print('Token invalido (fallback). Tentando renovar...')
-                await self._get_token()
-                # repete a requisição
-                header = {"Authorization": f'Bearer {self._token}', "type": "json", "fields": "time_utc,svid,s4,elev,azim,avg_cn0_l1"}
-                response = await self._client.get("api/v1/data/download/ismr/file", header=header, params=params)
-                response.raise_for_status()
-                print('Retornando os dados...')
-                return response.json()
-            
-            print(f"Erro ao buscar itens: {e.response.status_code} - {e.response.text}")
-            raise
+        response = await self._client.get("api/v1/data/download/ismr/file", headers=header, params=params)
+        response.raise_for_status()
+        print('Retornando os dados...')
+        return response.json()
 
 async def get_ISMR_API_client():
     # carregando as credenciais das variaveis ambiente

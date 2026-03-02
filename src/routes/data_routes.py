@@ -14,8 +14,6 @@ params = {
     'station': None
 }
 
-dados = None
-
 # rota padrão, podendo receber query params
 @router.get("/v1/data/")
 async def get_datas(
