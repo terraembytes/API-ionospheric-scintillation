@@ -175,7 +175,6 @@ def add_size_s4(data: list[dict]):
     df['sizePlot'] = list_size
     return df.to_dict(orient='records')
 
-def tratar_s4_nan(data: list[dict]):
-    df = pd.DataFrame(data)
-    df['S4'] = df['S4'].replace('NaN', np.nan)
-    return df.to_dict(orient='records')
+def remover_s4_nan(data: list[dict]):
+    processed_data = [linha for linha in data if linha['S4'] != 'NaN' and linha['S4'] != '']
+    return processed_data
