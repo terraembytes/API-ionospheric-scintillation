@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Annotated
 from services.data_processor import IsmrQueryToolAPIClient, get_ISMR_API_client
-from utils.helpers import group_s4, filter_constella_elev, cut_hour_range, add_size_s4, convert_str_to_float, convert_number_to_str, remover_s4_nan
+from utils.helpers import group_s4, filter_constella_elev, cut_hour_range, add_size_s4, convert_str_to_float, convert_number_to_str, remover_s4_nan, add_opacity_s4
 from httpx import ReadTimeout
 from services.temporary_memory import DataService, get_data_service
 import traceback
@@ -75,7 +75,8 @@ async def get_skiplot_s4_data(
         processed_data = remover_s4_nan(data_filtered2)
         data_number_converted = convert_str_to_float(processed_data, 'S4')
         data_with_size = add_size_s4(data_number_converted)
-        data_reconverted = convert_number_to_str(data_with_size, 'S4')
+        data_with_opacity = add_opacity_s4(data_with_size)
+        data_reconverted = convert_number_to_str(data_with_opacity, 'S4')
         return {'data': data_reconverted}
     except ReadTimeout:
         raise HTTPException(
