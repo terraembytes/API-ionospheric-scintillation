@@ -168,11 +168,27 @@ def add_size_s4(data: list[dict]):
         elif item['S4'] >= 0.6 and item['S4'] < 1:
             list_size.append('20')
         elif item['S4'] >= 1 and item['S4'] < 1.2:
-            list_size.append('30')
+            list_size.append('35')
         else:
-            list_size.append('40')
+            list_size.append('45')
     df = pd.DataFrame(data)
     df['sizePlot'] = list_size
+    return df.to_dict(orient='records')
+
+# funcao para definir a opacidade de cada plot baseado no S4
+def add_opacity_s4(data: list[dict]):
+    list_alpha = []
+    for item in data:
+        if item['S4'] < 0.6:
+            list_alpha.append('0.05')
+        elif item['S4'] >= 0.6 and item['S4'] < 1:
+            list_alpha.append('0.5')
+        elif item['S4'] >= 1 and item['S4'] < 1.2:
+            list_alpha.append('0.8')
+        else:
+            list_alpha.append('1')
+    df = pd.DataFrame(data)
+    df['alphaPlot'] = list_alpha
     return df.to_dict(orient='records')
 
 def remover_s4_nan(data: list[dict]):
