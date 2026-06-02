@@ -3,6 +3,10 @@ from typing import Optional
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
+import logging
+from src.exceptions.ISMR_exception import ISMRDataFetchError
+
+logger = logging.getLogger(__name__)
 
 class IsmrQueryToolAPIClient:
     def __init__(self, url_base: str, user_email: str, user_password: str):
@@ -63,10 +67,18 @@ class IsmrQueryToolAPIClient:
             "end": end,
             "station": station
         }
-        response = await self._client.get("api/v1/data/download/ismr/file", headers=header, params=params)
-        response.raise_for_status()
-        print('Retornando os dados...')
-        return response.json()
+        try:
+            response = await self._client.get("api/v1/data/download/ismr/file", headers=header, params=params)
+            response.raise_for_status()
+            print('Retornando os dados...')
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            status = e.response.status_code
+            logger.error(f"Erro {status} na API da ISMR para estação {station}")
+            raise ISMRDataFetchError(f"Falha no servidor de origem dos dados ISMR", original_status=status)
+        except httpx.RequestError as e:
+            logger.error(f"Falha de conexão ao tentar acessar a ISMR: {e}")
+            raise ISMRDataFetchError("Não foi possível conectar ao serviço de dados externo (ISMR)")
 
 async def get_ISMR_API_client():
     # carregando as credenciais das variaveis ambiente
