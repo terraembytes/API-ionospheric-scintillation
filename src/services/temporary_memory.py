@@ -2,6 +2,10 @@ import asyncio
 from typing import Dict
 from datetime import datetime, timezone, timedelta
 from services.data_processor import IsmrQueryToolAPIClient
+from src.exceptions.ISMR_exception import ISMRDataFetchError
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DataService:
     def __init__(self):
@@ -51,8 +55,9 @@ class DataService:
                 self._cache[cache_key] = processed_data
                 return processed_data
 
-            except Exception as e:
-                raise e
+            except ISMRDataFetchError as eISMR:
+                logger.warning(f"Falha ao ppopular o cache para {cache_key}. Repassando erro para a camada de rotas")
+                raise
 
 data_service = DataService()
 
