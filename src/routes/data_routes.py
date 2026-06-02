@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Annotated
 from services.data_processor import IsmrQueryToolAPIClient, get_ISMR_API_client
+from src.exceptions.ISMR_exception import ISMRDataFetchError
 from utils.helpers import group_s4, filter_constella_elev, cut_hour_range, add_size_s4, convert_str_to_float, convert_number_to_str, remover_s4_nan, add_opacity_s4
 from httpx import ReadTimeout
 from services.temporary_memory import DataService, get_data_service
@@ -46,6 +47,11 @@ async def get_datas(
             status_code=503,
             detail="Não foi possível conectar com a API externa (ISMR)"
         )
+    except ISMRDataFetchError as eISMR:
+        raise HTTPException(
+            status_code=502,
+            detail={"message": eISMR.message, "status_code": eISMR.original_status}
+        )
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(
@@ -88,6 +94,11 @@ async def get_skiplot_s4_data(
             status_code=503,
             detail="Não foi possível conectar com a API externa (ISMR)"
         )
+    except ISMRDataFetchError as eISMR:
+        raise HTTPException(
+            status_code=502,
+            detail={"message": eISMR.message, "status_code": eISMR.original_status}
+        )
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(
@@ -124,6 +135,11 @@ async def filter_cont_s4(
         raise HTTPException(
             status_code=503,
             detail="Não foi possível conectar com a API externa (ISMR)"
+        )
+    except ISMRDataFetchError as eISMR:
+        raise HTTPException(
+            status_code=502,
+            detail={"message": eISMR.message, "status_code": eISMR.original_status}
         )
     except Exception as e:
         raise HTTPException(
