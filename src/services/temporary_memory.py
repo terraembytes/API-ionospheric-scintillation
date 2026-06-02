@@ -2,7 +2,7 @@ import asyncio
 from typing import Dict
 from datetime import datetime, timezone, timedelta
 from services.data_processor import IsmrQueryToolAPIClient
-from src.exceptions.ISMR_exception import ISMRDataFetchError
+from exceptions.ISMR_exception import ISMRDataFetchError
 import logging
 
 logger = logging.getLogger(__name__)

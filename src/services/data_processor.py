@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
 import logging
-from src.exceptions.ISMR_exception import ISMRDataFetchError
+from exceptions.ISMR_exception import ISMRDataFetchError
 
 logger = logging.getLogger(__name__)
 
