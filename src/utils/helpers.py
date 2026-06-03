@@ -194,3 +194,24 @@ def add_opacity_s4(data: list[dict]):
 def remover_s4_nan(data: list[dict]):
     processed_data = [linha for linha in data if linha['S4'] != 'NaN' and linha['S4'] != '']
     return processed_data
+
+# funcao para encontrar a(s) constelação(ões) com maior quantidade de satelites com s4 alto
+def find_constellations_higher_s4(data: list[dict]):
+    all_constellations = {
+        range(1, 37): 'GPS',
+        range(38, 68): 'GLONASS',
+        range(71, 102): 'GALILEO',
+        range(141, 177): 'BeiDou'
+    }
+
+    df = pd.DataFrame(data)
+
+    highest_svid = df['Svid'].value_counts().max()
+
+    most_frequent_all = df['Svid'].value_counts()[lambda x: x == highest_svid].index.tolist()
+    constellations = [
+        all_constellations[svid] for svid in most_frequent_all
+    ]
+
+    unique_constellations = list(set(constellations))
+    return unique_constellations
