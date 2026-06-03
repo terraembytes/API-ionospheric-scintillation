@@ -215,3 +215,13 @@ def find_constellations_higher_s4(data: list[dict]):
 
     unique_constellations = list(set(constellations))
     return unique_constellations
+
+# funcao para encontrar a hora com maior quantidade de satelites com s4 alto
+def get_hour_higher_s4_values(data: list[dict]):
+    df = pd.DataFrame(data)
+    df['hora_exata'] = df['Date'].dt.time
+
+    hours_count = df['hora_exata'].value_counts()
+
+    critical_hour = hours_count.index[0]
+    return critical_hour
