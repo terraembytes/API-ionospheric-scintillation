@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Annotated
 from services.data_processor import IsmrQueryToolAPIClient, get_ISMR_API_client
 from exceptions.ISMR_exception import ISMRDataFetchError
-from utils.helpers import group_s4, filter_constella_elev, cut_hour_range, add_size_s4, convert_str_to_float, convert_number_to_str, remover_s4_nan, add_opacity_s4
+from utils.helpers import group_s4, filter_constella_elev, get_s4_higher_equals, cut_hour_range, add_size_s4, convert_str_to_float, convert_number_to_str, remover_s4_nan, add_opacity_s4, find_constellations_higher_s4, get_hour_higher_s4_values
 from httpx import ReadTimeout
 from services.temporary_memory import DataService, get_data_service
 import traceback
@@ -132,6 +132,54 @@ async def filter_cont_s4(
             detail="A API externa (ISMR) demorou muito para responder."
         )
     except ConnectionError: # não conseguiu se conectar
+        raise HTTPException(
+            status_code=503,
+            detail="Não foi possível conectar com a API externa (ISMR)"
+        )
+    except ISMRDataFetchError as eISMR:
+        raise HTTPException(
+            status_code=502,
+            detail={"message": eISMR.message, "status_code": eISMR.original_status}
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao processar os dados: {e}"
+        )
+
+# rota para informacoes dos cards da tela inicial do dashboard
+@router.get("/v1/data/cardsInfo/")
+async def get_cards_info(
+    start: str, 
+    end: str, 
+    station: str, 
+    api_client: Annotated[IsmrQueryToolAPIClient, Depends(get_ISMR_API_client)],
+    service: Annotated[DataService, Depends(get_data_service)]
+):
+    try:
+        dados_brutos = await service.get_data(api_client, start, end, station)
+
+        # filtando a base de dados para pegar valores de S4 maior q X valor
+        data_filtered = get_s4_higher_equals(0.6, dados_brutos)
+
+        list_data_unique_svid = list({linha['Svid']: linha for linha in data_filtered}.values())
+        
+        constellations = find_constellations_higher_s4(list_data_unique_svid)
+
+        critical_hours = get_hour_higher_s4_values(data_filtered)
+
+        package_data = {
+            'qnt_s4_higher': len(list_data_unique_svid),
+            'constellations': constellations,
+            'hour': critical_hours
+        }
+        return {'data': package_data}
+    except ReadTimeout:
+        raise HTTPException(
+            status_code=504, 
+            detail="A API externa (ISMR) demorou muito para responder."
+        )
+    except ConnectionError:
         raise HTTPException(
             status_code=503,
             detail="Não foi possível conectar com a API externa (ISMR)"
