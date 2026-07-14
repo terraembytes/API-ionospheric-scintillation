@@ -83,9 +83,9 @@ class IsmrQueryToolAPIClient:
 
             with zipfile.ZipFile(zip_buffer) as zip_ref:
                 for file in zip_ref.namelist():
-                    if file.endswith('.csv'):
+                    if file.endswith('.ismr'):
                         with zip_ref.open(file) as extracted_file:
-                            text_content = io.TextIOWrapper(extracted_file, encoding='utf-8')
+                            text_content = io.TextIOWrapper(extracted_file, encoding='utf-8-sig')
                             csv_reader = csv.DictReader(text_content)
                             for row in csv_reader:
                                 consolidated_data.append(dict(row))
