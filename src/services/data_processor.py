@@ -1,3 +1,8 @@
+import io
+import csv
+import zipfile
+import json
+
 import httpx
 from typing import Optional
 import os
@@ -58,8 +63,8 @@ class IsmrQueryToolAPIClient:
 
         header = {
             "Authorization": f'Bearer {token}',
-            "type": "json",
-            "fields": "time_utc,svid,s4,elev,azim,avg_cn0_l1"
+            # "type": "json",
+            # "fields": "time_utc,svid,s4,elev,azim,avg_cn0_l1"
         }
 
         params = {
@@ -70,8 +75,21 @@ class IsmrQueryToolAPIClient:
         try:
             response = await self._client.get("api/v1/data/download/ismr/file", headers=header, params=params)
             response.raise_for_status()
-            print('Retornando os dados...')
-            return response.json()
+            print('Descompactando os dados...')
+            
+            zip_buffer = io.BytesIO(response.content)
+
+            consolidated_data = []
+
+            with zipfile.ZipFile(zip_buffer) as zip_ref:
+                for file in zip_ref.namelist():
+                    if file.endswith('.csv'):
+                        with zip_ref.open(file) as extracted_file:
+                            text_content = io.TextIOWrapper(extracted_file, encoding='utf-8')
+                            csv_reader = csv.DictReader(text_content)
+                            for row in csv_reader:
+                                consolidated_data.append(dict(row))
+            return {"data": consolidated_data}
         except httpx.HTTPStatusError as e:
             status = e.response.status_code
             logger.error(f"Erro {status} na API da ISMR para estação {station}")
