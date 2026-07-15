@@ -104,12 +104,12 @@ def group_time_s4(df, ranges, time) -> pd.DataFrame:
 # filtro das constelações de satélite
 def constellation_filter(constellation: str, dados: list[dict]) -> list[dict]:
     values = dict_constellations.get(constellation, [])
-    data_copy = [linha for linha in dados if linha.get('Svid') in values]
+    data_copy = [linha for linha in dados if int(linha.get('Svid') or 0) in values]
     return data_copy
 
 # filtro da elevação
 def elevation_filter(elev: int, elevType: int, data_copy: list[dict]) -> list[dict]:
-    data_pre_processed = [{**linha, 'Elevation': linha.get('Elevation') or 0} for linha in data_copy]
+    data_pre_processed = [{**linha, 'Elevation': int(linha.get('Elevation') or 0)} for linha in data_copy]
     match elevType:
         case 1:
             data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) >= elev]
@@ -124,10 +124,10 @@ def elevation_filter(elev: int, elevType: int, data_copy: list[dict]) -> list[di
             data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) > elev]
             print(f"Filtrando a elevação > {elev}")
         case 5:
-            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) >= elev]
+            data_processed = [linha for linha in data_pre_processed if int(linha['Elevation']) < elev]
             print(f"Filtrando a elevação < {elev}")
         case _:
-            data_processed = []
+            data_processed = data_pre_processed
             print("tipo de filtro invalido")
     return data_processed
 
