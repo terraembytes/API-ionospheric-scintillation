@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Annotated
 from services.data_processor import IsmrQueryToolAPIClient, get_ISMR_API_client
 from exceptions.ISMR_exception import ISMRDataFetchError
-from utils.helpers import group_s4, filter_constella_elev, get_s4_higher_equals, cut_hour_range, add_size_s4, convert_str_to_float, convert_number_to_str, remover_s4_nan, add_opacity_s4, find_constellations_higher_s4, get_hour_higher_s4_values
+from utils.helpers import group_s4, filter_constella_elev, get_s4_higher_equals, cut_hour_range, add_size_s4, convert_str_to_float, convert_number_to_str, remover_s4_nan, add_opacity_s4, find_constellations_higher_s4, get_hour_higher_s4_values, constellation_filter, elevation_filter
 from httpx import ReadTimeout
 from services.temporary_memory import DataService, get_data_service
 import traceback
@@ -35,7 +35,8 @@ async def get_datas(
         dados_brutos = await service.get_data(api_client, start, end, station)
 
         data_cut = cut_hour_range(hour_range, date_selected, dados_brutos)
-        data_filtered2 = filter_constella_elev(data_cut, constellation, elev, elevType)
+        data_filtered1 = constellation_filter(constellation, data_cut)
+        data_filtered2 = elevation_filter(elev, elevType, data_filtered1)
         return {'data': data_filtered2}
     except ReadTimeout:
         raise HTTPException(
