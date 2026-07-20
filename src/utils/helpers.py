@@ -146,6 +146,11 @@ def cut_hour_range(hour_range: int | None, hour_selected: str | None, data_copy)
 def convert_str_to_float(data: list[dict], indice: str):
     return list(map(lambda x: {**x, indice: float(x[indice])}, data))
 
+def convert_str_to_int(data: list[dict], indice: str) -> list[dict]:
+    df = pd.DataFrame(data)
+    df[indice] = pd.to_numeric(df[indice], errors='coerce').fillna(0)
+    return df.to_dict(orient='records')
+
 def convert_number_to_str(data: list[dict], indice):
     return list(map(lambda x: {**x, indice: str(x[indice])}, data))
 
