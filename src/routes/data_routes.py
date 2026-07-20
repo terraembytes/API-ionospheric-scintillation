@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Annotated
 from services.data_processor import IsmrQueryToolAPIClient, get_ISMR_API_client
 from exceptions.ISMR_exception import ISMRDataFetchError
-from utils.helpers import group_s4, filter_constella_elev, get_s4_higher_equals, cut_hour_range, add_size_s4, convert_str_to_float, convert_number_to_str, remover_s4_nan, add_opacity_s4, find_constellations_higher_s4, get_hour_higher_s4_values, constellation_filter, elevation_filter
+from utils.helpers import convert_str_to_int, group_s4, filter_constella_elev, get_s4_higher_equals, cut_hour_range, add_size_s4, convert_str_to_float, convert_number_to_str, remover_s4_nan, add_opacity_s4, find_constellations_higher_s4, get_hour_higher_s4_values, constellation_filter, elevation_filter, remover_svid_nan
 from httpx import ReadTimeout
 from services.temporary_memory import DataService, get_data_service
 import traceback
@@ -125,7 +125,9 @@ async def filter_cont_s4(
         
         data_filtered2 = filter_constella_elev(dados_brutos, constellation, elev, elevType)
         print("Agrupando os valores de S4...")
-        data_filtered3 = group_s4(data_filtered2, constellation, time)
+        data_nan_removed = remover_svid_nan(data_filtered2)
+        data_svid_converted = convert_str_to_int(data_nan_removed, 'Svid')
+        data_filtered3 = group_s4(data_svid_converted, constellation, time)
         return {'data': data_filtered3}
     except ReadTimeout:
         raise HTTPException(
