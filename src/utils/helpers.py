@@ -56,8 +56,7 @@ def constellation_time_s4(df, time) -> pd.DataFrame:
     df_cut = df.copy()
     # tratatando rapidamente os dados
     df_cut['Date'] = pd.to_datetime(df_cut['Date'])
-    df_cut['S4'] = df_cut['S4'].replace('NaN', np.nan)
-    df_cut['S4'] = pd.to_numeric(df_cut['S4'])
+    df_cut['S4'] = pd.to_numeric(df_cut['S4'], errors='coerce').fillna(0)
 
     df_cut['time_group'] = df_cut['Date'].dt.ceil(freq)
 
