@@ -198,6 +198,12 @@ def remover_s4_nan(data: list[dict]):
     processed_data = [linha for linha in data if linha['S4'] != 'NaN' and linha['S4'] != '']
     return processed_data
 
+def remover_svid_nan(data: list[dict]):
+    df = pd.DataFrame(data)
+    df['Svid'] = pd.to_numeric(df['Svid'], errors='coerce').fillna(0).astype(int)
+    processed_data = df.to_dict(orient='records')
+    return processed_data
+
 # funcao para encontrar a(s) constelação(ões) com maior quantidade de satelites com s4 alto
 def find_constellations_higher_s4(data: list[dict]):
     all_constellations = {
