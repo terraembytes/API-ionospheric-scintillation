@@ -79,8 +79,7 @@ def group_time_s4(df, ranges, time) -> pd.DataFrame:
     # obtendo o DataFrame de cada constelação
     df_cut = df.loc[df['Svid'].isin(ranges), :].copy()
     df_cut['Date'] = pd.to_datetime(df_cut['Date'])
-    df_cut['S4'] = df_cut['S4'].replace('NaN', np.nan)
-    df_cut['S4'] = pd.to_numeric(df_cut['S4'])
+    df_cut['S4'] = pd.to_numeric(df_cut['S4'], errors='coerce').fillna(0)
     freq = interval_map[time]
     # na nova coluna 'time_group', eu adiciono o tempo arredondando para a proxima freq
     # dessa forma, posteriormente, é possivel calcular os valores agrupando pelo 'time_group'
